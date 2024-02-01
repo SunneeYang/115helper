@@ -1,0 +1,15 @@
+{
+    "manifest_version": 3,
+    "name": "Cookie Viewer",
+    "version": "1.0",
+    "permissions": ["cookies", "tabs"],
+    "host_permissions": ["*://*.115.com/*"],
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "icons": {
+        "16": "icon.png",
+        "48": "icon.png",
+        "128": "icon.png"
+    }
+  }
