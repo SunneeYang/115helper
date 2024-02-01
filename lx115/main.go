@@ -25,11 +25,42 @@ func init() {
 }
 
 func main() {
-	http.HandleFunc("/add-magnet-to-115", addUrl)
-	http.HandleFunc("/115-cookies", syncCookies)
-	if err := http.ListenAndServe(":3333", nil); err != nil {
+	// 创建一个新的 ServeMux
+	mux := http.NewServeMux()
+
+	// 添加您的路由处理函数
+	mux.HandleFunc("/add-magnet-to-115", addUrl)
+	mux.HandleFunc("/115-cookies", syncCookies)
+
+	// 使用 CORS 中间件包装 ServeMux
+	handlerWithCORS := enableCORS(mux)
+
+	// 启动服务器
+	if err := http.ListenAndServe(":3333", handlerWithCORS); err != nil {
 		log.Fatalf("服务启动失败: %v", err)
 	}
+}
+
+func enableCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// 设置允许的源，这里设置为允许所有源
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		// 设置允许的 HTTP 方法
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+
+		// 设置允许的头信息
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+
+		// 预检请求使用 OPTIONS 方法，这里我们直接返回 200
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// 调用下一个处理器
+		next.ServeHTTP(w, r)
+	})
 }
 
 func syncCookies(writer http.ResponseWriter, request *http.Request) {
@@ -51,6 +82,9 @@ func syncCookies(writer http.ResponseWriter, request *http.Request) {
 		CID:  cid,
 		SEID: seid,
 	})
+
+	fmt.Fprintf(writer, "同步成功")
+	fmt.Printf("同步成功\n")
 }
 
 func addUrl(writer http.ResponseWriter, request *http.Request) {
