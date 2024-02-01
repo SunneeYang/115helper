@@ -20,7 +20,6 @@ import (
 var client *elevengo.Client
 
 func init() {
-	//uid, cid, seid := getCredentials()
 	client = elevengo.Default()
 }
 
@@ -186,32 +185,4 @@ func askCaptcha() (string, error) {
 	}
 
 	return prompt.Run()
-}
-
-func getCredentials() (uid, cid, seid string) {
-	//configFile, err := homedir.Expand("~/115.cookies")
-	//if err != nil {
-	//	panic(err)
-	//}
-
-	configFile := "115.cookies"
-
-	if _, err := os.Stat(configFile); os.IsNotExist(err) {
-		panic("请在 home 目录下创建 .115.cookies 文件")
-	}
-
-	if data, err := ioutil.ReadFile(configFile); err != nil {
-		panic(err)
-	} else {
-		cookies := string(data)
-		uidReg := regexp.MustCompile(`UID=(\w+);`)
-		cidReg := regexp.MustCompile(`CID=(\w+);`)
-		seidReg := regexp.MustCompile(`SEID=(\w+);`)
-		uid = uidReg.FindAllStringSubmatch(cookies, -1)[0][1]
-		cid = cidReg.FindAllStringSubmatch(cookies, -1)[0][1]
-		seid = seidReg.FindAllStringSubmatch(cookies, -1)[0][1]
-		return
-	}
-
-	return "", "", ""
 }

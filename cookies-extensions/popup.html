@@ -5,9 +5,18 @@
     <title>Cookies List</title>
 </head>
 <body>
-    <h1>Cookies</h1>
-    <ul id="cookiesList"></ul>
-    <button id="sendCookies">Send Cookies</button>
+    <div id="content">
+        <h1>Cookies</h1>
+        <ul id="cookiesList"></ul>
+        <input type="text" id="serverAddress" value="http://localhost:3333" placeholder="Enter server address" />
+        <button id="sendCookies">Send Cookies</button>
+    </div>
+    <div id="notification">
+        <span id="notificationText">Cookies sent successfully!</span>
+    </div>
+    <div id="notLoggedInMessage">
+        <p>You are not logged in.</p>
+    </div>
     <script src="popup.js"></script>
 </body>
 </html>
