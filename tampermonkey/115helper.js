@@ -99,7 +99,7 @@
             // 处理链接元素
             if (element.tagName.toLowerCase() === 'a' && element.hasAttribute('href')) {
                 href = element.getAttribute('href');
-                if (href.startsWith("magnet:?") || href.startsWith("thunder://") || href.startsWith("ed2k://")) {
+                if (href.startsWith("magnet:?") || href.startsWith("ed2k://")) {
                     insertButton(element, href);
                 }
             }
