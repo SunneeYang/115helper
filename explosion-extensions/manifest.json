@@ -1,14 +1,27 @@
 {
     "manifest_version": 3,
-    "name": "特定网站链接打开器",
+    "name": "Explosion",
     "version": "1.0",
     "permissions": ["activeTab", "tabs", "scripting"],
     "host_permissions": [
         "*://*.xxx.com/*"
     ],
     "action": {
-        "default_popup": "popup.html"
+      "default_icon": {
+        "16": "icon.png",
+        "48": "icon.png",
+        "128": "icon.png"
+      }
     },
+    "background": {
+      "service_worker": "background.js"
+    },
+    "content_scripts": [
+      {
+        "matches": ["*://*.xxx.com/*"],
+        "js": ["content.js"]
+      }
+    ],
     "icons": {
       "16": "icon.png",
       "48": "icon.png",

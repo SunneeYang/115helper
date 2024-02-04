@@ -1,13 +1,4 @@
-document.getElementById('openLinks').addEventListener('click', function() {
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-      chrome.scripting.executeScript({
-        target: {tabId: tabs[0].id},
-        function: openAllLinks
-      });
-    });
-  });
-  
-  function openAllLinks() {
+function openLinks() {
     const links = document.querySelectorAll('.bk-table-body-wrapper a'); // 修改选择器以匹配您的链接
     links.forEach(link => {
       if (link.href.indexOf("http") !== 0) {
@@ -17,4 +8,6 @@ document.getElementById('openLinks').addEventListener('click', function() {
       window.open(link.href, '_blank'); // 使用window.open来代替chrome.tabs.create
     });
   }
+  
+  openLinks();
   
