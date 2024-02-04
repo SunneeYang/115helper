@@ -40,6 +40,10 @@ git clone
 2. 将整个文件夹拖拽到Chrome的扩展页面(`chrome://extensions/`)，开启"开发者模式"，点击"加载已解压的扩展程序"。
 3. 登录115网盘，点击扩展图标发送Cookies到`lx115`服务器。
 
+### 4. Explosion-Extensions Chrome扩展
+
+`explosion-extensions`是一个Chrome扩展程序，用于一键打开当前页面上符合格式的链接，比如论坛的所有帖子。
+
 ## 使用说明
 
 确保所有组件均已安装并运行。浏览含有磁力链接的网页时，点击Tampermonkey脚本添加的图标，即可将磁力链接添加到115网盘的离线下载任务中。
