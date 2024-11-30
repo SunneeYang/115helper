@@ -91,7 +91,7 @@
         createToastElement();
 
         // 查找所有的链接和段落元素
-        var elements = document.querySelectorAll('a, p');
+        var elements = document.querySelectorAll('a');
 
         Array.prototype.forEach.call(elements, function(element) {
             var text, href;
@@ -99,19 +99,23 @@
             // 处理链接元素
             if (element.tagName.toLowerCase() === 'a' && element.hasAttribute('href')) {
                 href = element.getAttribute('href');
-                if (href.startsWith("magnet:?") || href.startsWith("ed2k://")) {
+                if (href.startsWith("magnet:?") || href.startsWith("thunder://") || href.startsWith("ed2k://")) {
                     insertButton(element, href);
                 }
             }
+        });
 
-            // 处理段落元素
-            if (element.tagName.toLowerCase() === 'p') {
-                text = element.textContent || element.innerText;
-                // 假设我们要查找的文本是 "特定文本"
-                if (text.includes("下载地址")) {
-                    // 在这里，我们将链接假设为段落中的文本，实际情况可能需要不同的处理
-                    insertButton(element, text);
-                }
+        // 仅选择位于<div class="blockcode">元素下的<li>元素
+        elements = document.querySelectorAll('div.blockcode li');
+
+        Array.prototype.forEach.call(elements, function(element) {
+            var text = element.textContent || element.innerText;
+
+            // 检查文本是否包含磁力链接
+            if (text.startsWith("magnet:?") || text.startsWith("thunder://") || text.startsWith("ed2k://")) {
+                // 在这里处理磁力链接
+                // 例如，插入一个按钮到<li>元素或其父元素之前
+                insertButton(element, text);
             }
         });
     }
@@ -132,6 +136,7 @@
         // 将按钮插入为父元素的第一个子元素
         targetElement.insertBefore(ele, firstChild);
     }
+
 
 })();
 

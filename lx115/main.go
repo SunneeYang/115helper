@@ -3,10 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/deadblue/elevengo"
-	"github.com/manifoldco/promptui"
-	gim "github.com/ozankasikci/go-image-merge"
-	"image/jpeg"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,7 +10,11 @@ import (
 	"os/exec"
 	"regexp"
 	"runtime"
-	"strconv"
+
+	"github.com/deadblue/elevengo"
+	"github.com/manifoldco/promptui"
+	gim "github.com/ozankasikci/go-image-merge"
+	"image/jpeg"
 )
 
 var client *elevengo.Client
@@ -122,11 +122,10 @@ func addUrl(writer http.ResponseWriter, request *http.Request) {
 
 			for {
 				captcha, err := askCaptcha()
+				fmt.Println("captcha: ", captcha)
 				if err != nil {
 					fmt.Println(err)
-				}
-
-				if err := client.CaptchaSubmit(captcha, captchaSession); err != nil {
+				} else if err := client.CaptchaSubmit(captcha, captchaSession); err != nil {
 					fmt.Println(err)
 					if err.Error() != "captcha code incorrect" {
 						break
@@ -172,17 +171,31 @@ func openUrl(url string) error {
 
 func askCaptcha() (string, error) {
 	validate := func(input string) error {
-		_, err := strconv.ParseInt(input, 10, 16)
-		if err != nil {
-			return errors.New("输入 0-9 范围内的 4 个数字")
+		if len(input) != 4 {
+			return errors.New("验证码必须是4位数字")
+		}
+		for _, c := range input {
+			if c < '0' || c > '9' {
+				return errors.New("请输入0-9范围内的数字")
+			}
 		}
 		return nil
 	}
 
-	prompt := promptui.Prompt{
-		Label:    "验证码(4位数，第一行0-4, 第二行5-9)",
+	prompt := &promptui.Prompt{
+		Label:    "请输入验证码(4位数字)",
 		Validate: validate,
+		Default:  "",
 	}
 
-	return prompt.Run()
+	for {
+		result, err := prompt.Run()
+		if err == nil {
+			return result, nil
+		}
+		if err == promptui.ErrInterrupt {
+			return "", err
+		}
+		fmt.Printf("输入错误: %v\n请重新输入验证码\n", err)
+	}
 }

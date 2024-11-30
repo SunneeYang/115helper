@@ -18,9 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (neededCookies.length > 0) {
                 content.style.display = 'block';
                 notLoggedInMessage.style.display = 'none';
-            } else {
-                content.style.display = 'none';
-                notLoggedInMessage.style.display = 'block';
 
                 let cookiesString = cookies.map(cookie => {
                     const listItem = document.createElement('li');
@@ -34,6 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(cookiesString); // 或者您可以在这里做其他事情，比如显示到页面上
                 // 将 cookiesString 保存起来以便稍后发送
                 sendCookiesButton.dataset.cookies = cookiesString;
+            } else {
+                content.style.display = 'none';
+                notLoggedInMessage.style.display = 'block';
             }
         });
     });
