@@ -11,70 +11,98 @@ document.addEventListener('DOMContentLoaded', () => {
     const notLoggedInMessage = document.getElementById('notLoggedInMessage');
 
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-        chrome.cookies.getAll({url: tabs[0].url}, (cookies) => {
+        // 首先检查当前是否在115网站
+        if (!tabs[0].url.includes('115.com')) {
+            console.log('Not on 115.com website');
+            content.style.display = 'none';
+            notLoggedInMessage.textContent = '请先访问 115.com 网站';
+            notLoggedInMessage.style.display = 'block';
+            return;
+        }
+
+        chrome.cookies.getAll({domain: '115.com'}, (cookies) => {
+            console.log('Checking 115.com cookies...');
             const list = document.getElementById('cookiesList');
 
             let neededCookies = cookies.filter(cookie => ['UID', 'CID', 'SEID'].includes(cookie.name));
-            if (neededCookies.length > 0) {
+            console.log('Found cookies:', cookies.length);
+            console.log('Required cookies found:', neededCookies.map(c => c.name));
+            
+            if (neededCookies.length === 3) {
                 content.style.display = 'block';
                 notLoggedInMessage.style.display = 'none';
-            } else {
-                content.style.display = 'none';
-                notLoggedInMessage.style.display = 'block';
 
-                let cookiesString = cookies.map(cookie => {
+                let cookiesString = neededCookies.map(cookie => {
                     const listItem = document.createElement('li');
                     listItem.textContent = `${cookie.name}: ${cookie.value}`;
                     list.appendChild(listItem);
-
-                    return `${encodeURIComponent(cookie.name)}=${encodeURIComponent(cookie.value)}`
+                    return `${cookie.name}=${cookie.value}`
                 }).join(';') + ';';
 
-                // 现在 cookiesString 包含了所有键值对，用分号和一个空格分隔
-                console.log(cookiesString); // 或者您可以在这里做其他事情，比如显示到页面上
-                // 将 cookiesString 保存起来以便稍后发送
+                console.log('Cookie string prepared successfully');
                 sendCookiesButton.dataset.cookies = cookiesString;
+            } else {
+                console.log('Not all required cookies found');
+                content.style.display = 'none';
+                notLoggedInMessage.textContent = '请先登录 115 网盘';
+                notLoggedInMessage.style.display = 'block';
+                sendCookiesButton.dataset.cookies = '';
             }
         });
     });
 
     sendCookiesButton.addEventListener('click', () => {
+        console.log('Send button clicked');
         const cookiesString = sendCookiesButton.dataset.cookies;
+        console.log('Cookies data:', cookiesString ? 'Found' : 'Not found');
+        
         if (!cookiesString) {
-            showNotification('No cookies to send', 'error')
+            console.log('No cookies available to send');
+            showNotification('请先登录115网盘', 'error');
             return;
         }
 
         // 获取用户输入的服务器地址
         const serverAddress = serverAddressInput.value;
+        console.log('Server address:', serverAddress);
 
         // 检查服务器地址是否合法
         if (!isValidServerAddress(serverAddress)) {
-            showNotification('Invalid server address', 'error')
+            console.log('Invalid server address');
+            showNotification('请输入有效的服务器地址', 'error');
             return;
         }
+
+        console.log('Sending request to:', `${serverAddress}/115-cookies`);
+        const encodedCookies = encodeURIComponent(cookiesString);
+        console.log('Encoded cookies:', encodedCookies);
         
-        const endpoint = `${serverAddress}/115-cookies`;
-        
-        fetch(endpoint, {
+        fetch(`${serverAddress}/115-cookies`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: `cookies=${encodeURIComponent(cookiesString)}`
+            body: `cookies=${encodedCookies}`
         })
-        .then(response => {
+        .then(async response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', Object.fromEntries([...response.headers]));
+            
+            const responseText = await response.text();
+            console.log('Response text:', responseText);
+            
             if (response.ok) {
-                return response;
+                return responseText;
             }
-            throw new Error('Network response was not ok.');
+            throw new Error(`Server responded with ${response.status}: ${responseText}`);
         })
         .then(data => {
-            showNotification('Cookies sent successfully', 'success')
-            console.log('Cookies sent successfully:', data);
+            console.log('Success:', data);
+            showNotification('Cookies sent successfully!', 'success');
         })
         .catch(error => {
-            console.error('Error sending cookies:', error);
+            console.error('Error details:', error);
+            showNotification(error.message, 'error');
         });
     });
 });

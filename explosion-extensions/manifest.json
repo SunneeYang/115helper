@@ -4,7 +4,7 @@
     "version": "1.0",
     "permissions": ["activeTab", "tabs", "scripting"],
     "host_permissions": [
-        "*://*.xxx.com/*"
+        "*://sehuatang.net/*"
     ],
     "action": {
       "default_icon": {
@@ -16,12 +16,12 @@
     "background": {
       "service_worker": "background.js"
     },
-    "content_scripts": [
-      {
-        "matches": ["*://*.xxx.com/*"],
-        "js": ["content.js"]
-      }
-    ],
+    // "content_scripts": [
+    //   {
+    //     "matches": ["*://sehuatang.net/*"],
+    //     "js": ["content.js"]
+    //   }
+    // ],
     "icons": {
       "16": "icon.png",
       "48": "icon.png",

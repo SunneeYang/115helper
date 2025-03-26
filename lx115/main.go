@@ -64,26 +64,55 @@ func enableCORS(next http.Handler) http.Handler {
 
 func syncCookies(writer http.ResponseWriter, request *http.Request) {
 	if err := request.ParseForm(); err != nil {
+		log.Printf("解析表单失败: %v\n", err)
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	cookies := request.FormValue("cookies")
-	uidReg := regexp.MustCompile(`UID=(\w+);`)
-	cidReg := regexp.MustCompile(`CID=(\w+);`)
-	seidReg := regexp.MustCompile(`SEID=(\w+);`)
-	uid := uidReg.FindAllStringSubmatch(cookies, -1)[0][1]
-	cid := cidReg.FindAllStringSubmatch(cookies, -1)[0][1]
-	seid := seidReg.FindAllStringSubmatch(cookies, -1)[0][1]
+	if cookies == "" {
+		log.Println("未收到cookies数据")
+		http.Error(writer, "cookies数据为空", http.StatusBadRequest)
+		return
+	}
 
-	_ = client.ImportCredentials(&elevengo.Credentials{
+	log.Printf("收到cookies数据，长度: %d\n", len(cookies))
+
+	// 使用更精确的正则表达式
+	uidReg := regexp.MustCompile(`UID=([^;]+)`)
+	cidReg := regexp.MustCompile(`CID=([^;]+)`)
+	seidReg := regexp.MustCompile(`SEID=([^;]+)`)
+
+	uidMatches := uidReg.FindStringSubmatch(cookies)
+	cidMatches := cidReg.FindStringSubmatch(cookies)
+	seidMatches := seidReg.FindStringSubmatch(cookies)
+
+	if len(uidMatches) < 2 || len(cidMatches) < 2 || len(seidMatches) < 2 {
+		log.Printf("无法解析cookies数据: UID=%v, CID=%v, SEID=%v\n", 
+			len(uidMatches) > 1, len(cidMatches) > 1, len(seidMatches) > 1)
+		http.Error(writer, "cookies格式错误或缺少必要数据", http.StatusBadRequest)
+		return
+	}
+
+	uid := uidMatches[1]
+	cid := cidMatches[1]
+	seid := seidMatches[1]
+
+	log.Printf("解析结果 - UID: %s, CID: %s, SEID: %s\n", uid, cid, seid)
+
+	if err := client.ImportCredentials(&elevengo.Credentials{
 		UID:  uid,
 		CID:  cid,
 		SEID: seid,
-	})
+	}); err != nil {
+		log.Printf("导入凭据失败: %v\n", err)
+		http.Error(writer, fmt.Sprintf("导入凭据失败: %v", err), http.StatusInternalServerError)
+		return
+	}
 
-	fmt.Fprintf(writer, "同步成功")
-	fmt.Printf("同步成功\n")
+	writer.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(writer, `{"status": "success", "message": "同步成功"}`)
+	log.Println("同步成功")
 }
 
 func addUrl(writer http.ResponseWriter, request *http.Request) {
