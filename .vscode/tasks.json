@@ -1,0 +1,27 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Build 115helper",
+			"command": "go",
+			"args": [
+				"build",
+				"-o",
+				"115helper.exe"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/lx115"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": ["$go"],
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		}
+	]
+}
