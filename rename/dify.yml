@@ -1,0 +1,179 @@
+app:
+  description: ''
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: workflow
+  name: 重命名
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openrouter:0.0.5@55ddb36a03717ec8c10945eca203f066ef53d8ab692a17050fdc730000ba1e0a
+kind: app
+version: 0.1.5
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        image_file_size_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: llm
+      id: 1742955164810-source-1742956286732-target
+      source: '1742955164810'
+      sourceHandle: source
+      target: '1742956286732'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: end
+      id: 1742956286732-source-1742956930703-target
+      source: '1742956286732'
+      sourceHandle: source
+      target: '1742956930703'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: 开始
+        type: start
+        variables:
+        - allowed_file_extensions: []
+          allowed_file_types:
+          - document
+          allowed_file_upload_methods:
+          - local_file
+          - remote_url
+          label: filename
+          max_length: 8196
+          options: []
+          required: true
+          type: paragraph
+          variable: filename
+      height: 88
+      id: '1742955164810'
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 243
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1742955164810'
+          - filename
+        desc: ''
+        model:
+          completion_params: {}
+          mode: chat
+          name: deepseek/deepseek-chat
+          provider: langgenius/openrouter/openrouter
+        prompt_template:
+        - id: d93f46b0-46ac-4bef-a0f5-fa3da1ab824d
+          role: system
+          text: 你是一个专门识别 AV 视频番号的助手。我请从我提供的文件名列表中提取番号列表,每行是一个名字，然后按照输入顺序输出官方的名字列表，如果其中某一个名字解析失败就输出原名字。不要其他信息。{{#context#}}
+        selected: true
+        title: LLM
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 88
+      id: '1742956286732'
+      position:
+        x: 384
+        y: 282
+      positionAbsolute:
+        x: 384
+        y: 282
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 243
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - '1742956286732'
+          - text
+          variable: text
+        selected: false
+        title: 结束
+        type: end
+      height: 88
+      id: '1742956930703'
+      position:
+        x: 799
+        y: 282
+      positionAbsolute:
+        x: 799
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 243
+    viewport:
+      x: 138
+      y: 365
+      zoom: 1
