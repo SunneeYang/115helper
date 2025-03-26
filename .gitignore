@@ -1,3 +1,6 @@
 lx115/.idea
 .DS_Store
 *.exe
+rename/data
+rename/test
+rename/rename.log
