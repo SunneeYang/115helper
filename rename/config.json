@@ -1,0 +1,11 @@
+{
+    "server_url": "http://localhost/v1/workflows/run",
+    "access_token": "app-6tcyOsNarMlcIzeyEKh6oJfw",
+    "target_dir": "C:\\Work\\115helper\\rename\\test_rename",
+    "data_dir": "data",
+    "files": {
+        "original_directories": "original_directories.json",
+        "converted_directories": "converted_directories.json",
+        "name_mapping": "name_mapping.json"
+    }
+} 
