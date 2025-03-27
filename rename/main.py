@@ -4,6 +4,7 @@ import json
 import sys
 import logging
 import requests
+import time
 from typing import List, Dict
 from pathlib import Path
 from datetime import datetime
@@ -99,62 +100,101 @@ def load_from_json(filename: str) -> dict:
 
 def send_to_server(directory_names: List[str], server_url: str, access_token: str) -> List[str]:
     """发送目录名称到服务器并获取转换后的名称"""
-    try:
-        # 文件名列表格式化（每行一个文件名）
-        filenames = "\n".join(directory_names)
-        
-        # 准备请求数据
-        payload = json.dumps({
-            "inputs": {
-                "filename": filenames
-            },
-            "response_mode": "blocking",
-            "user": "abc-123"
-        })
-        
-        headers = {
-            'Authorization': f'Bearer {access_token}',
-            'Content-Type': 'application/json'
-        }
-        
-        logging.info(f"发送请求到 {server_url}")
-        logging.info(f"请求数据: {payload}")
-        logging.info("服务器处理可能需要较长时间，请耐心等待...")
-        
-        # 发送请求，设置超时时间为300秒
-        response = requests.request("POST", server_url, headers=headers, data=payload, timeout=300)
-        
-        # 检查响应状态
-        if response.status_code != 200:
-            logging.error(f"服务器返回错误状态码: {response.status_code}")
+    max_retries = 3
+    retry_delay = 5
+    
+    for attempt in range(max_retries):
+        try:
+            # 文件名列表格式化（每行一个文件名）
+            filenames = "\n".join(directory_names)
+            
+            # 准备请求数据
+            payload = json.dumps({
+                "inputs": {
+                    "filename": filenames
+                },
+                "response_mode": "blocking",
+                "user": "abc-123"
+            })
+            
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json'
+            }
+            
+            logging.info(f"发送请求到 {server_url}")
+            logging.info(f"请求数据: {payload}")
+            logging.info("服务器处理可能需要较长时间，请耐心等待...")
+            
+            # 发送请求，设置更长的超时时间
+            response = requests.request(
+                "POST", 
+                server_url, 
+                headers=headers, 
+                data=payload, 
+                timeout=600,  # 增加到10分钟
+                verify=False  # 忽略SSL验证
+            )
+            
+            # 检查响应状态
+            if response.status_code != 200:
+                logging.error(f"服务器返回错误状态码: {response.status_code}")
+                if attempt < max_retries - 1:
+                    logging.info(f"将在 {retry_delay} 秒后重试...")
+                    time.sleep(retry_delay)
+                    continue
+                sys.exit(1)
+                
+            # 解析响应数据
+            try:
+                response_data = response.json()
+                logging.info(f"服务器响应: {json.dumps(response_data, ensure_ascii=False)}")
+            except json.JSONDecodeError as e:
+                logging.error(f"解析服务器响应失败: {e}")
+                if attempt < max_retries - 1:
+                    logging.info(f"将在 {retry_delay} 秒后重试...")
+                    time.sleep(retry_delay)
+                    continue
+                sys.exit(1)
+            
+            # 获取转换后的文件名列表，并去除每个名称前后的空格
+            if "data" in response_data and "outputs" in response_data["data"]:
+                converted_names = [name.strip() for name in response_data["data"]["outputs"]["text"].strip().split("\n")]
+                if converted_names:
+                    logging.info(f"成功获取到 {len(converted_names)} 个转换后的文件名")
+                    return converted_names
+                    
+            logging.error("服务器返回的数据中没有转换后的文件名")
+            if attempt < max_retries - 1:
+                logging.info(f"将在 {retry_delay} 秒后重试...")
+                time.sleep(retry_delay)
+                continue
             sys.exit(1)
             
-        # 解析响应数据
-        response_data = response.json()
-        logging.info(f"服务器响应: {json.dumps(response_data, ensure_ascii=False)}")
-        
-        # 获取转换后的文件名列表，并去除每个名称前后的空格
-        if "data" in response_data and "outputs" in response_data["data"]:
-            converted_names = [name.strip() for name in response_data["data"]["outputs"]["text"].strip().split("\n")]
-            if converted_names:
-                logging.info(f"成功获取到 {len(converted_names)} 个转换后的文件名")
-                return converted_names
-                
-        logging.error("服务器返回的数据中没有转换后的文件名")
-        sys.exit(1)
-        
-    except requests.exceptions.Timeout:
-        logging.error("请求超时")
-        sys.exit(1)
-    except requests.exceptions.RequestException as e:
-        logging.error(f"请求失败: {e}")
-        sys.exit(1)
-    except json.JSONDecodeError as e:
-        logging.error(f"解析服务器响应失败: {e}")
-        sys.exit(1)
-    except Exception as e:
-        logging.error(f"处理服务器响应时发生错误: {e}")
-        sys.exit(1)
+        except requests.exceptions.Timeout:
+            logging.error("请求超时")
+            if attempt < max_retries - 1:
+                logging.info(f"将在 {retry_delay} 秒后重试...")
+                time.sleep(retry_delay)
+                continue
+            sys.exit(1)
+        except requests.exceptions.RequestException as e:
+            logging.error(f"请求失败: {e}")
+            if attempt < max_retries - 1:
+                logging.info(f"将在 {retry_delay} 秒后重试...")
+                time.sleep(retry_delay)
+                continue
+            sys.exit(1)
+        except Exception as e:
+            logging.error(f"发生未知错误: {e}")
+            if attempt < max_retries - 1:
+                logging.info(f"将在 {retry_delay} 秒后重试...")
+                time.sleep(retry_delay)
+                continue
+            sys.exit(1)
+    
+    logging.error("达到最大重试次数，操作失败")
+    sys.exit(1)
 
 def create_mapping(original_names: List[str], converted_names: List[str]) -> Dict[str, str]:
     """创建原始名称和转换后名称的映射"""
